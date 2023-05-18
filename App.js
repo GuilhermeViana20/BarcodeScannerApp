@@ -30,42 +30,44 @@ export default function App() {
 		newItem.image = image;
 		newItem.quantity = quantity;
 		newItem.price = price * quantity;
+		newItem.priceUnit = parseInt(price);
 		setModalVisible(false);
-		setCartItems([...cartItems, newItem]);
-		sumValues()
+		setCartItems([...cartItems, newItem], () => {
+			sumValues(newItem.price)
+		});
 		cleanInputs()
 	};
 
-	const updateCartItemQuantity = (itemId, newQuantity) => {
+	const updateCartItemQuantity = (itemId, newQuantity) => {		
 		const updatedCartItems = cartItems.map((item) => {
-		  if (item.id === itemId) {
-			return {
-			  ...item,
-			  quantity: newQuantity,
-			  price: item.price * newQuantity,
-			};
-		  }
-		  return item;
+			if (item.gtin === itemId) {
+				return {
+					...item,
+					quantity: newQuantity,
+					price: item.priceUnit * newQuantity,
+				};
+			}
+			return item;
 		});
 		setCartItems(updatedCartItems);
-		sumValues();
-	  };
-	
-	  const increaseQuantity = (itemId) => {
-		const item = cartItems.find((item) => item.id === itemId);
-		if (item) {
-		  const newQuantity = item.quantity + 1;
-		  updateCartItemQuantity(itemId, newQuantity);
-		}
-	  };
+		sumValues(updatedCartItems.price);
+	};
 
-	  const decreaseQuantity = (itemId) => {
-		const item = cartItems.find((item) => item.id === itemId);
-		if (item && item.quantity > 1) {
-		  const newQuantity = item.quantity - 1;
-		  updateCartItemQuantity(itemId, newQuantity);
+	const increaseQuantity = (itemId) => {
+		const item = cartItems.find((item) => item.gtin === itemId);
+		if (item) {
+			const newQuantity = parseInt(item.quantity) + 1;
+			updateCartItemQuantity(itemId, newQuantity);
 		}
-	  };
+	};
+
+	const decreaseQuantity = (itemId) => {
+		const item = cartItems.find((item) => item.gtin === itemId);
+		if (item && item.quantity > 1) {
+			const newQuantity = parseInt(item.quantity) - 1;
+			updateCartItemQuantity(itemId, newQuantity);
+		}
+	};
 
 	const searchProduct = async (barcode) => {
 		try {
@@ -95,16 +97,15 @@ export default function App() {
 		setPrice(0)
 	}
 
-	const sumValues = () => {
-		currentValue = price * quantity;
-		setValue([...values, currentValue]);
-
-		const sum = values.reduce((accumulator, currentValue) => {
-			return accumulator + currentValue;
-		}, 0);
-
-		setTotal(sum + currentValue);
-	};
+	const sumValues = (value) => {
+		let sum = value;
+		cartItems.forEach((item) => {
+		  sum += parseInt(item.price);
+		});
+		console.log(sum)
+		setTotal(sum);
+	  };
+	  
 
 	const formatTotal = (value) => {
 		return value.toFixed(2);
@@ -116,7 +117,7 @@ export default function App() {
 				visible={modalVisible}
 				transparent={true}
 				animationType="slide"
-				// onRequestClose={() => setModalVisible(false)}
+			// onRequestClose={() => setModalVisible(false)}
 			>
 				<View style={styles.modal}>
 					<Scanner onCodeScanned={onCodeScanned} />
@@ -189,7 +190,7 @@ export default function App() {
 				renderItem={({ item }) => (
 					<View style={styles.cartItemContainer}>
 						<View style={styles.quadradoA}>
-							<Image style={styles.imageProduct} source={{ uri: item.thumbnail ? item.thumbnail : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png'}} />
+							<Image style={styles.imageProduct} source={{ uri: item.thumbnail ? item.thumbnail : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
 						</View>
 						<View style={styles.quadradoB}>
 							<Text style={styles.markProduct}>{item.brand.name}</Text>
@@ -198,11 +199,11 @@ export default function App() {
 						</View>
 						<View style={styles.quadradoC}>
 							<View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', justifyContent: 'center', width: '90%', paddingVertical: 5, borderRadius: 5 }}>
-								<TouchableOpacity onPress={() => decreaseQuantity(item.id)}>
+								<TouchableOpacity onPress={() => decreaseQuantity(item.gtin)}>
 									<Icon style={styles.icon} name="remove-outline" size={20} color="#F08F5F" />
 								</TouchableOpacity>
 								<Text style={{ fontSize: 18, paddingHorizontal: 10 }}>{item.quantity}</Text>
-								<TouchableOpacity onPress={() => increaseQuantity(item.id)}>
+								<TouchableOpacity onPress={() => increaseQuantity(item.gtin)}>
 									<Icon style={styles.icon} name="add-outline" size={20} color="#F08F5F" />
 								</TouchableOpacity>
 							</View>
