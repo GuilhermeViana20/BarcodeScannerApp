@@ -27,23 +27,61 @@ export default function App() {
 
 	const addToCart = (item) => {
 		const newItem = { ...item };
-		newItem.quantidade = quantity;
-		newItem.preco = price * quantity;
-		console.log(newItem)
+		newItem.name = name;
+		newItem.image = image;
+		newItem.quantity = quantity;
+		newItem.price = price * quantity;
+		console.log("🚀 ~ file: App.js:32 ~ addToCart ~ newItem:", newItem)
 		setCartItems([...cartItems, newItem]);
 		sumValues()
 		cleanInputs()
 	};
 
+	const updateCartItemQuantity = (itemId, newQuantity) => {
+		const updatedCartItems = cartItems.map((item) => {
+		  if (item.id === itemId) {
+			return {
+			  ...item,
+			  quantity: newQuantity,
+			  price: item.price * newQuantity,
+			};
+		  }
+		  return item;
+		});
+		setCartItems(updatedCartItems);
+		sumValues();
+	  };
+	
+	  const increaseQuantity = (itemId) => {
+		const item = cartItems.find((item) => item.id === itemId);
+		if (item) {
+		  const newQuantity = item.quantity + 1;
+		  updateCartItemQuantity(itemId, newQuantity);
+		}
+	  };
+
+	  const decreaseQuantity = (itemId) => {
+		const item = cartItems.find((item) => item.id === itemId);
+		if (item && item.quantity > 1) {
+		  const newQuantity = item.quantity - 1;
+		  updateCartItemQuantity(itemId, newQuantity);
+		}
+	  };
+
 	const searchProduct = async (barcode) => {
 		try {
 			const response = await fetch(
-				`http://brasilapi.simplescontrole.com.br/mercadoria/consulta/?ean=${barcode}&access-token=1qBM1JcjblppLP7wJFcEh5HQiWyXCg8Q`
+				`https://api.cosmos.bluesoft.com.br/gtins/${barcode}`,
+				{
+					headers: {
+						'X-Cosmos-Token': 'cE6aw9VrBvtajy-X_R1vSg'
+					}
+				}
 			);
 			const result = await response.json();
-			setName(result.return.nome);
-			setImage(result.return.imagem_produto);
-			setProduct(result.return);
+			setName(result.description);
+			setImage(result.thumbnail);
+			setProduct(result);
 		} catch (error) {
 			console.error(error);
 		}
@@ -93,49 +131,72 @@ export default function App() {
 				<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
 			</TouchableOpacity>
 
-			<Text>Data: {data}</Text>
-			<Image style={styles.tinyLogo} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
-			<Text>Nome: {name}</Text>
+			<View style={styles.cartItemContainer}>
+				<View style={styles.quadradoA}>
+					<Image style={styles.imageProduct} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
+				</View>
+				<View style={styles.quadradoB}>
+					<Text>{data}</Text>
+					<Text>{name}</Text>
+				</View>
+				<View style={styles.quadradoC}>
+					<TouchableOpacity style={styles.addToCart} onPress={() => addToCart(product)}>
+						<Icon style={styles.icon} name="add-outline" size={35} color="#FFFFFF" />
+					</TouchableOpacity>
+				</View>
+			</View>
 
-			<Text style={styles.label}>Quantidade:</Text>
-			<TextInput
-				style={styles.input}
-				onChangeText={setQuantity}
-				value={quantity}
-				keyboardType="numeric"
-			/>
+			<View>
+				<TextInput
+					style={styles.input}
+					onChangeText={setQuantity}
+					value={quantity}
+					keyboardType="numeric"
+				/>
+				<Text style={styles.label}>UND</Text>
 
-			<Text style={styles.label}>Valor:</Text>
-			<TextInput
-				style={styles.input}
-				onChangeText={setPrice}
-				value={price}
-				keyboardType="numeric"
-			/>
-
-			<Button title="Adicionar ao carrinho" onPress={() => addToCart(product)} />
+				<Text style={styles.label}>R$ </Text>
+				<TextInput
+					style={styles.input}
+					onChangeText={setPrice}
+					value={price}
+					keyboardType="numeric"
+				/>
+			</View>
 
 			<FlatList
 				data={cartItems}
-				ListHeaderComponent={<View style={styles.header}><Text>Seu carrinho</Text></View>}
-				ListFooterComponent={<View style={styles.footer}><Text style={{ justifyContent: 'space-between' }}>Total: R$ {formatTotal(total)}</Text></View>}
+				ListHeaderComponent={<View style={styles.header}><Text style={styles.headerContent}>Seu carrinho</Text></View>}
+				ListFooterComponent={
+					<View style={styles.footer}>
+						<Text style={styles.footerContent}>
+							Total:
+						</Text>
+						<Text style={styles.footerTotal}>
+							R$ {formatTotal(total)}
+						</Text>
+					</View>}
 				ListEmptyComponent={<View style={styles.empty}><Text>Não há nada aqui :/</Text></View>}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
 				renderItem={({ item }) => (
 					<View style={styles.cartItemContainer}>
 						<View style={styles.quadradoA}>
-							<Image style={styles.imageProduct} source={{ uri: item.imagem_produto ? item.imagem_produto : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png'}} />
+							<Image style={styles.imageProduct} source={{ uri: item.thumbnail ? item.thumbnail : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png'}} />
 						</View>
 						<View style={styles.quadradoB}>
-							<Text style={styles.markProduct}>{item.marca_nome}</Text>
-							<Text style={styles.nameProduct}>{item.nome.substring(0, 20)}</Text>
-							<Text style={styles.priceProduct}>R$ {formatTotal(item.preco)}</Text>
+							<Text style={styles.markProduct}>{item.brand.name}</Text>
+							<Text style={styles.nameProduct}>{item.name}</Text>
+							<Text style={styles.priceProduct}>R$ {formatTotal(item.price)}</Text>
 						</View>
 						<View style={styles.quadradoC}>
 							<View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', justifyContent: 'center', width: '90%', paddingVertical: 5, borderRadius: 5 }}>
-								<Icon style={styles.icon} name="remove-outline" size={20} color="#F08F5F" />
-								<Text style={{ fontSize: 18, paddingHorizontal: 10}}>{item.quantidade}</Text>
-								<Icon style={styles.icon} name="add-outline" size={20} color="#F08F5F" />
+								<TouchableOpacity onPress={() => decreaseQuantity(item.id)}>
+									<Icon style={styles.icon} name="remove-outline" size={20} color="#F08F5F" />
+								</TouchableOpacity>
+								<Text style={{ fontSize: 18, paddingHorizontal: 10 }}>{item.quantity}</Text>
+								<TouchableOpacity onPress={() => increaseQuantity(item.id)}>
+									<Icon style={styles.icon} name="add-outline" size={20} color="#F08F5F" />
+								</TouchableOpacity>
 							</View>
 						</View>
 					</View>
@@ -162,8 +223,8 @@ const styles = StyleSheet.create({
 		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 	},
 	tinyLogo: {
-		width: 150,
-		height: 150
+		width: 100,
+		height: 100
 	},
 	scanner: {
 		position: 'absolute',
@@ -190,7 +251,8 @@ const styles = StyleSheet.create({
 	imageProduct: {
 		height: 60,
 		width: 60,
-		borderRadius: 11
+		borderRadius: 11,
+		backgroundColor: '#E8E8E8'
 	},
 	markProduct: {
 		color: '#B1B1B1',
@@ -215,10 +277,30 @@ const styles = StyleSheet.create({
 	// 	borderColor: 'gray',
 	// },
 	header: {
-		height: 20,
+		marginTop: 20,
+		height: 40,
+	},
+	headerContent: {
+		color: '#363636',
+		fontSize: 26,
+		fontWeight: 'bold'
 	},
 	footer: {
 		height: 20,
+		justifyContent: 'space-between',
+		flexDirection: "row",
+		flexWrap: 'wrap',
+		marginTop: 20
+	},
+	footerContent: {
+		color: '#363636',
+		fontSize: 22,
+		fontWeight: 'bold'
+	},
+	footerTotal: {
+		color: '#F08F5F',
+		fontSize: 22,
+		fontWeight: 'bold'
 	},
 	empty: {
 		justifyContent: 'center',
@@ -239,10 +321,21 @@ const styles = StyleSheet.create({
 		height: '100%',
 		width: '30%',
 		bottom: 0,
-		justifyContent: 'flex-end'
+		justifyContent: 'center',
+		alignItems: 'center'
 	},
 	separator: {
-		marginVertical: 5,
+		marginVertical: 10,
 		backgroundColor: 'gray',
 	},
+	addToCart: {
+		position: 'absolute',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 45,
+		height: 45,
+		backgroundColor: '#5A6CF3',
+		borderRadius: 11
+	},
+
 });
