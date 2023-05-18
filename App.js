@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { StyleSheet, Button, View, Modal, Text, Image, FlatList, TextInput, TouchableOpacity, SafeAreaView } from "react-native";
+import { StyleSheet, Button, View, Modal, Text, Image, FlatList, TextInput, TouchableOpacity, SafeAreaView, Linking } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import Scanner from "./src/components/Scanner";
 
@@ -108,6 +108,31 @@ export default function App() {
 		return parseFloat(value * 0.01).toFixed(2);
 	};
 
+	const sendWhatsAppMessage = () => {
+		const phoneNumber = "5585991887855";
+		let message = "Itens do carrinho:\n\n";
+	  
+		// Percorre os itens do carrinho e adiciona as informações à mensagem
+		cartItems.forEach((item, index) => {
+		  const { name, quantity, price } = item;
+		  const formattedPrice = formatTotal(price);
+		  message += `${index + 1}. ${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n`;
+		});
+	  
+		// Codifica a mensagem para ser incluída na URL
+		const encodedMessage = encodeURIComponent(message);
+	  
+		// Constrói a URL com o número de telefone e a mensagem
+		const url = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodedMessage}`;
+	  
+		// Abre a URL no navegador padrão do dispositivo
+		Linking.openURL(url)
+		  .catch((error) => {
+			console.error("Erro ao abrir o WhatsApp: ", error);
+		  });
+	  };
+	  
+
 	return (
 		<SafeAreaView style={styles.container}>
 			<Modal
@@ -183,7 +208,7 @@ export default function App() {
 								R$ {formatTotal(total)}
 							</Text>
 						</View>
-						<TouchableOpacity style={styles.buttonSend} onPress={() => increaseQuantity(item.gtin)}>
+						<TouchableOpacity style={styles.buttonSend} onPress={sendWhatsAppMessage}>
 							<Text>Finalizar pedido</Text>
 							<Icon name="checkmark-outline" size={20} />
 						</TouchableOpacity>
