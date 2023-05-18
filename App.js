@@ -116,7 +116,7 @@ export default function App() {
 		cartItems.forEach((item, index) => {
 		  const { name, quantity, price } = item;
 		  const formattedPrice = formatTotal(price);
-		  message += `${index + 1}. ${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n`;
+		  message += `${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n\n*Total: R$ ${formatTotal(total)}*`;
 		});
 	  
 		// Codifica a mensagem para ser incluída na URL
