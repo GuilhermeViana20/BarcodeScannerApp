@@ -2,7 +2,6 @@ import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { StyleSheet, Button, View, Modal, Text, Image, FlatList, TextInput, TouchableOpacity, SafeAreaView } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
-
 import Scanner from "./src/components/Scanner";
 
 export default function App() {
@@ -16,7 +15,6 @@ export default function App() {
 	const [quantity, setQuantity] = useState(0);
 	const [price, setPrice] = useState(0);
 	const [total, setTotal] = useState(0);
-	const [values, setValue] = useState([]);
 
 	const onCodeScanned = (type, data) => {
 		setType(type);
@@ -30,15 +28,15 @@ export default function App() {
 		newItem.image = image;
 		newItem.quantity = quantity;
 		newItem.price = price * quantity;
-		newItem.priceUnit = parseInt(price);
+		newItem.priceUnit = price;
 		setModalVisible(false);
-		setCartItems([...cartItems, newItem], () => {
-			sumValues(newItem.price)
-		});
-		cleanInputs()
+		const updatedCartItems = [...cartItems, newItem];
+		setCartItems(updatedCartItems);
+		sumValues(updatedCartItems);
+		cleanInputs();
 	};
 
-	const updateCartItemQuantity = (itemId, newQuantity) => {		
+	const updateCartItemQuantity = (itemId, newQuantity) => {
 		const updatedCartItems = cartItems.map((item) => {
 			if (item.gtin === itemId) {
 				return {
@@ -50,9 +48,9 @@ export default function App() {
 			return item;
 		});
 		setCartItems(updatedCartItems);
-		sumValues(updatedCartItems.price);
+		sumValues(updatedCartItems);
 	};
-
+	
 	const increaseQuantity = (itemId) => {
 		const item = cartItems.find((item) => item.gtin === itemId);
 		if (item) {
@@ -97,18 +95,17 @@ export default function App() {
 		setPrice(0)
 	}
 
-	const sumValues = (value) => {
-		let sum = value;
-		cartItems.forEach((item) => {
-		  sum += parseInt(item.price);
+	const sumValues = (items) => {
+		let sum = 0;
+		items.forEach((item) => {
+		  sum += item.price;
 		});
-		console.log(sum)
 		setTotal(sum);
 	  };
 	  
 
 	const formatTotal = (value) => {
-		return value.toFixed(2);
+		return parseFloat(value * 0.01).toFixed(2);
 	};
 
 	return (
@@ -177,14 +174,21 @@ export default function App() {
 				data={cartItems}
 				ListHeaderComponent={<View style={styles.header}><Text style={styles.headerContent}>Seu carrinho</Text></View>}
 				ListFooterComponent={
-					<View style={styles.footer}>
-						<Text style={styles.footerContent}>
-							Total:
-						</Text>
-						<Text style={styles.footerTotal}>
-							R$ {formatTotal(total)}
-						</Text>
-					</View>}
+					<View>
+						<View style={styles.footer}>
+							<Text style={styles.footerContent}>
+								Total:
+							</Text>
+							<Text style={styles.footerTotal}>
+								R$ {formatTotal(total)}
+							</Text>
+						</View>
+						<TouchableOpacity style={styles.buttonSend} onPress={() => increaseQuantity(item.gtin)}>
+							<Text>Finalizar pedido</Text>
+							<Icon name="checkmark-outline" size={20} />
+						</TouchableOpacity>
+					</View>
+				}
 				ListEmptyComponent={<View style={styles.empty}><Text>Não há nada aqui :/</Text></View>}
 				ItemSeparatorComponent={() => <View style={styles.separator} />}
 				renderItem={({ item }) => (
@@ -364,5 +368,15 @@ const styles = StyleSheet.create({
 		color: '#363636',
 		fontSize: 18,
 		marginBottom: 5
+	},
+	buttonSend: {
+		width: '100%',
+		backgroundColor: '#90ee90',
+		height: 50,
+		justifyContent: 'center',
+		alignItems: 'center',
+		flexDirection: 'row',
+		borderRadius: 6,
+		marginTop: 20
 	}
 });
