@@ -21,7 +21,6 @@ export default function App() {
 	const onCodeScanned = (type, data) => {
 		setType(type);
 		setData(data);
-		setModalVisible(false);
 		searchProduct(data);
 	};
 
@@ -31,7 +30,7 @@ export default function App() {
 		newItem.image = image;
 		newItem.quantity = quantity;
 		newItem.price = price * quantity;
-		console.log("🚀 ~ file: App.js:32 ~ addToCart ~ newItem:", newItem)
+		setModalVisible(false);
 		setCartItems([...cartItems, newItem]);
 		sumValues()
 		cleanInputs()
@@ -117,11 +116,53 @@ export default function App() {
 				visible={modalVisible}
 				transparent={true}
 				animationType="slide"
-				onRequestClose={() => setModalVisible(false)}
+				// onRequestClose={() => setModalVisible(false)}
 			>
 				<View style={styles.modal}>
 					<Scanner onCodeScanned={onCodeScanned} />
-					<Button title="Cancelar" onPress={() => setModalVisible(false)} />
+
+					<View style={styles.containerForm}>
+						<View style={styles.w50}>
+							<Text style={styles.label}>Quantidade</Text>
+							<TextInput
+								style={styles.input}
+								onChangeText={setQuantity}
+								value={quantity}
+								keyboardType="numeric"
+							/>
+						</View>
+
+						<View style={styles.w50}>
+							<Text style={styles.label}>Valor </Text>
+							<TextInput
+								style={styles.input}
+								onChangeText={setPrice}
+								value={price}
+								keyboardType="numeric"
+							/>
+						</View>
+					</View>
+
+					<View style={styles.containerBoxProduct}>
+						<View style={styles.cartItemContainer}>
+							<View style={styles.quadradoA}>
+								<Image style={styles.imageProduct} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
+							</View>
+							<View style={styles.quadradoB}>
+								<Text>{data}</Text>
+								<Text>{name}</Text>
+							</View>
+							<View style={styles.quadradoC}>
+								<TouchableOpacity style={styles.addToCart} onPress={() => addToCart(product)}>
+									<Icon style={styles.icon} name="add-outline" size={35} color="#FFFFFF" />
+								</TouchableOpacity>
+							</View>
+						</View>
+					</View>
+
+					<View style={styles.close}>
+						<Button title="Cancelar" onPress={() => setModalVisible(false)} />
+					</View>
 				</View>
 			</Modal>
 
@@ -130,39 +171,6 @@ export default function App() {
 			<TouchableOpacity style={styles.scanner} onPress={() => setModalVisible(true)}>
 				<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
 			</TouchableOpacity>
-
-			<View style={styles.cartItemContainer}>
-				<View style={styles.quadradoA}>
-					<Image style={styles.imageProduct} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
-				</View>
-				<View style={styles.quadradoB}>
-					<Text>{data}</Text>
-					<Text>{name}</Text>
-				</View>
-				<View style={styles.quadradoC}>
-					<TouchableOpacity style={styles.addToCart} onPress={() => addToCart(product)}>
-						<Icon style={styles.icon} name="add-outline" size={35} color="#FFFFFF" />
-					</TouchableOpacity>
-				</View>
-			</View>
-
-			<View>
-				<TextInput
-					style={styles.input}
-					onChangeText={setQuantity}
-					value={quantity}
-					keyboardType="numeric"
-				/>
-				<Text style={styles.label}>UND</Text>
-
-				<Text style={styles.label}>R$ </Text>
-				<TextInput
-					style={styles.input}
-					onChangeText={setPrice}
-					value={price}
-					keyboardType="numeric"
-				/>
-			</View>
 
 			<FlatList
 				data={cartItems}
@@ -218,9 +226,7 @@ const styles = StyleSheet.create({
 	},
 	modal: {
 		flex: 1,
-		alignItems: "center",
-		justifyContent: 'center',
-		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		backgroundColor: '#FFFFFF',
 	},
 	tinyLogo: {
 		width: 100,
@@ -268,14 +274,6 @@ const styles = StyleSheet.create({
 		fontSize: 16,
 		fontWeight: 'bold'
 	},
-	// item: {
-	// 	flex: 1,
-	// 	justifyContent: 'center',
-	// 	alignItems: 'center',
-	// 	height: 100,
-	// 	borderWidth: 1,
-	// 	borderColor: 'gray',
-	// },
 	header: {
 		marginTop: 20,
 		height: 40,
@@ -337,5 +335,33 @@ const styles = StyleSheet.create({
 		backgroundColor: '#5A6CF3',
 		borderRadius: 11
 	},
-
+	containerBoxProduct: {
+		paddingHorizontal: 10,
+		alignItems: 'center',
+		padding: 10,
+	},
+	close: {
+		margin: 10,
+	},
+	containerForm: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		margin: 10,
+		justifyContent: 'space-between'
+	},
+	w50: {
+		width: '48%',
+	},
+	input: {
+		height: 44,
+		borderRadius: 4,
+		backgroundColor: '#F8F8FB',
+		fontSize: 16,
+		padding: 10
+	},
+	label: {
+		color: '#363636',
+		fontSize: 18,
+		marginBottom: 5
+	}
 });
