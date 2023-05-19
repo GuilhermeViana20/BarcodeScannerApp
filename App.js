@@ -1,6 +1,18 @@
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { StyleSheet, Button, View, Modal, Text, Image, FlatList, TextInput, TouchableOpacity, SafeAreaView, Linking } from "react-native";
+import {
+	StyleSheet,
+	Button,
+	View,
+	Modal,
+	Text,
+	Image,
+	FlatList,
+	TextInput,
+	TouchableOpacity,
+	SafeAreaView,
+	Linking
+} from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import Scanner from "./src/components/Scanner";
 import { Swipeable } from 'react-native-gesture-handler';
@@ -107,12 +119,14 @@ export default function App() {
 	};
 
 	const removeItem = (itemId) => {
-		const updatedCartItems = cartItems.filter((item) => item.gtin !== itemId);
+		const updatedCartItems = cartItems.filter(
+			(item) => item.gtin !== itemId
+		);
 		setCartItems(updatedCartItems);
 		sumValues(updatedCartItems);
 	};
 
-	const formatTotal = (value) => {
+	const formatPrice = (value) => {
 		return parseFloat(value * 0.01).toFixed(2);
 	};
 
@@ -123,11 +137,11 @@ export default function App() {
 		// Percorre os itens do carrinho e adiciona as informações à mensagem
 		cartItems.forEach((item, index) => {
 		  const { name, quantity, price } = item;
-		  const formattedPrice = formatTotal(price);
+		  const formattedPrice = formatPrice(price);
 		  message += `${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n\n`;
 		});
 	  
-		message += `*Total: R$ ${formatTotal(total)}*`;
+		message += `*Total: R$ ${formatPrice(total)}*`;
 		// Codifica a mensagem para ser incluída na URL
 		const encodedMessage = encodeURIComponent(message);
 	  
@@ -149,7 +163,6 @@ export default function App() {
 					visible={modalVisible}
 					transparent={true}
 					animationType="slide"
-				// onRequestClose={() => setModalVisible(false)}
 				>
 					<View style={styles.modal}>
 						<Scanner onCodeScanned={onCodeScanned} />
@@ -215,7 +228,7 @@ export default function App() {
 									Total:
 								</Text>
 								<Text style={styles.footerTotal}>
-									R$ {formatTotal(total)}
+									R$ {formatPrice(total)}
 								</Text>
 							</View>
 							<TouchableOpacity style={styles.buttonSend} onPress={sendWhatsAppMessage}>
@@ -241,7 +254,7 @@ export default function App() {
 								<View style={styles.quadradoB}>
 									<Text style={styles.markProduct}>{item.brand ? item.brand.name : 'Desconhecido'}</Text>
 									<Text style={styles.nameProduct}>{item.name}</Text>
-									<Text style={styles.priceProduct}>R$ {formatTotal(item.price)}</Text>
+									<Text style={styles.priceProduct}>R$ {formatPrice(item.price)}</Text>
 								</View>
 								<View style={styles.quadradoC}>
 									<View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', justifyContent: 'center', width: '90%', paddingVertical: 5, borderRadius: 5 }}>
