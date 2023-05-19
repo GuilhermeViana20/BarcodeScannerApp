@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { StyleSheet, Button, View, Modal, Text, Image, FlatList, TextInput, TouchableOpacity, SafeAreaView, Linking } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import Scanner from "./src/components/Scanner";
+import { Swipeable } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function App() {
 	const [modalVisible, setModalVisible] = useState(false);
@@ -24,8 +26,8 @@ export default function App() {
 
 	const addToCart = (item) => {
 		const newItem = { ...item };
-		newItem.name = name;
-		newItem.image = image;
+		newItem.name = name ?? null;
+		newItem.image = image ?? null;
 		newItem.quantity = quantity;
 		newItem.price = price * quantity;
 		newItem.priceUnit = price;
@@ -78,6 +80,7 @@ export default function App() {
 				}
 			);
 			const result = await response.json();
+			console.log(result)
 			setName(result.description);
 			setImage(result.thumbnail);
 			setProduct(result);
@@ -101,8 +104,13 @@ export default function App() {
 		  sum += item.price;
 		});
 		setTotal(sum);
-	  };
-	  
+	};
+
+	const removeItem = (itemId) => {
+		const updatedCartItems = cartItems.filter((item) => item.gtin !== itemId);
+		setCartItems(updatedCartItems);
+		sumValues(updatedCartItems);
+	};
 
 	const formatTotal = (value) => {
 		return parseFloat(value * 0.01).toFixed(2);
@@ -116,9 +124,10 @@ export default function App() {
 		cartItems.forEach((item, index) => {
 		  const { name, quantity, price } = item;
 		  const formattedPrice = formatTotal(price);
-		  message += `${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n\n*Total: R$ ${formatTotal(total)}*`;
+		  message += `${name} - Quantidade: ${quantity} - Preço: R$ ${formattedPrice}\n\n`;
 		});
 	  
+		message += `*Total: R$ ${formatTotal(total)}*`;
 		// Codifica a mensagem para ser incluída na URL
 		const encodedMessage = encodeURIComponent(message);
 	  
@@ -134,114 +143,124 @@ export default function App() {
 	  
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<Modal
-				visible={modalVisible}
-				transparent={true}
-				animationType="slide"
-			// onRequestClose={() => setModalVisible(false)}
-			>
-				<View style={styles.modal}>
-					<Scanner onCodeScanned={onCodeScanned} />
+		<GestureHandlerRootView style={{ flex: 1 }}>
+			<SafeAreaView style={styles.container}>
+				<Modal
+					visible={modalVisible}
+					transparent={true}
+					animationType="slide"
+				// onRequestClose={() => setModalVisible(false)}
+				>
+					<View style={styles.modal}>
+						<Scanner onCodeScanned={onCodeScanned} />
 
-					<View style={styles.containerForm}>
-						<View style={styles.w50}>
-							<Text style={styles.label}>Quantidade</Text>
-							<TextInput
-								style={styles.input}
-								onChangeText={setQuantity}
-								value={quantity}
-								keyboardType="numeric"
-							/>
+						<View style={styles.containerForm}>
+							<View style={styles.w50}>
+								<Text style={styles.label}>Quantidade</Text>
+								<TextInput
+									style={styles.input}
+									onChangeText={setQuantity}
+									value={quantity}
+									keyboardType="numeric"
+								/>
+							</View>
+
+							<View style={styles.w50}>
+								<Text style={styles.label}>Valor </Text>
+								<TextInput
+									style={styles.input}
+									onChangeText={setPrice}
+									value={price}
+									keyboardType="numeric"
+								/>
+							</View>
 						</View>
 
-						<View style={styles.w50}>
-							<Text style={styles.label}>Valor </Text>
-							<TextInput
-								style={styles.input}
-								onChangeText={setPrice}
-								value={price}
-								keyboardType="numeric"
-							/>
+						<View style={styles.containerBoxProduct}>
+							<View style={styles.cartItemContainer}>
+								<View style={styles.quadradoA}>
+									<Image style={styles.imageProduct} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
+								</View>
+								<View style={styles.quadradoB}>
+									<Text>{data}</Text>
+									<Text>{name}</Text>
+								</View>
+								<View style={styles.quadradoC}>
+									<TouchableOpacity style={styles.addToCart} onPress={() => addToCart(product)}>
+										<Icon style={styles.icon} name="add-outline" size={35} color="#FFFFFF" />
+									</TouchableOpacity>
+								</View>
+							</View>
+						</View>
+
+						<View style={styles.close}>
+							<Button title="Cancelar" onPress={() => setModalVisible(false)} />
 						</View>
 					</View>
+				</Modal>
 
-					<View style={styles.containerBoxProduct}>
-						<View style={styles.cartItemContainer}>
-							<View style={styles.quadradoA}>
-								<Image style={styles.imageProduct} source={{ uri: image ? image : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
+				<StatusBar style="auto" />
+
+				<TouchableOpacity style={styles.scanner} onPress={() => setModalVisible(true)}>
+					<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
+				</TouchableOpacity>
+
+				<FlatList
+					data={cartItems}
+					ListHeaderComponent={<View style={styles.header}><Text style={styles.headerContent}>Seu carrinho</Text></View>}
+					ListFooterComponent={
+						<View>
+							<View style={styles.footer}>
+								<Text style={styles.footerContent}>
+									Total:
+								</Text>
+								<Text style={styles.footerTotal}>
+									R$ {formatTotal(total)}
+								</Text>
 							</View>
-							<View style={styles.quadradoB}>
-								<Text>{data}</Text>
-								<Text>{name}</Text>
-							</View>
-							<View style={styles.quadradoC}>
-								<TouchableOpacity style={styles.addToCart} onPress={() => addToCart(product)}>
-									<Icon style={styles.icon} name="add-outline" size={35} color="#FFFFFF" />
+							<TouchableOpacity style={styles.buttonSend} onPress={sendWhatsAppMessage}>
+								<Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Finalizar pedido</Text>
+								<Icon style={{ color: 'white' }} name="checkmark-outline" size={24} />
+							</TouchableOpacity>
+						</View>
+					}
+					ListEmptyComponent={<View style={styles.empty}><Text>Não há nada aqui :/</Text></View>}
+					ItemSeparatorComponent={() => <View style={styles.separator} />}
+					renderItem={({ item }) => (
+						<Swipeable
+							renderRightActions={() => (
+								<TouchableOpacity style={styles.deleteButton} onPress={() => removeItem(item.gtin)}>
+								<Icon name="trash-outline" size={20} color="white" />
 								</TouchableOpacity>
+							)}
+						>
+							<View style={styles.cartItemContainer}>
+								<View style={styles.quadradoA}>
+									<Image style={styles.imageProduct} source={{ uri: item.thumbnail ? item.thumbnail : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
+								</View>
+								<View style={styles.quadradoB}>
+									<Text style={styles.markProduct}>{item.brand ? item.brand.name : 'Desconhecido'}</Text>
+									<Text style={styles.nameProduct}>{item.name}</Text>
+									<Text style={styles.priceProduct}>R$ {formatTotal(item.price)}</Text>
+								</View>
+								<View style={styles.quadradoC}>
+									<View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', justifyContent: 'center', width: '90%', paddingVertical: 5, borderRadius: 5 }}>
+										<TouchableOpacity onPress={() => decreaseQuantity(item.gtin)}>
+											<Icon style={styles.icon} name="remove-outline" size={20} color="#F08F5F" />
+										</TouchableOpacity>
+										<Text style={{ fontSize: 18, paddingHorizontal: 10 }}>{item.quantity}</Text>
+										<TouchableOpacity onPress={() => increaseQuantity(item.gtin)}>
+											<Icon style={styles.icon} name="add-outline" size={20} color="#F08F5F" />
+										</TouchableOpacity>
+									</View>
+								</View>
 							</View>
-						</View>
-					</View>
-
-					<View style={styles.close}>
-						<Button title="Cancelar" onPress={() => setModalVisible(false)} />
-					</View>
-				</View>
-			</Modal>
-
-			<StatusBar style="auto" />
-
-			<TouchableOpacity style={styles.scanner} onPress={() => setModalVisible(true)}>
-				<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
-			</TouchableOpacity>
-
-			<FlatList
-				data={cartItems}
-				ListHeaderComponent={<View style={styles.header}><Text style={styles.headerContent}>Seu carrinho</Text></View>}
-				ListFooterComponent={
-					<View>
-						<View style={styles.footer}>
-							<Text style={styles.footerContent}>
-								Total:
-							</Text>
-							<Text style={styles.footerTotal}>
-								R$ {formatTotal(total)}
-							</Text>
-						</View>
-						<TouchableOpacity style={styles.buttonSend} onPress={sendWhatsAppMessage}>
-							<Text>Finalizar pedido</Text>
-							<Icon name="checkmark-outline" size={20} />
-						</TouchableOpacity>
-					</View>
-				}
-				ListEmptyComponent={<View style={styles.empty}><Text>Não há nada aqui :/</Text></View>}
-				ItemSeparatorComponent={() => <View style={styles.separator} />}
-				renderItem={({ item }) => (
-					<View style={styles.cartItemContainer}>
-						<View style={styles.quadradoA}>
-							<Image style={styles.imageProduct} source={{ uri: item.thumbnail ? item.thumbnail : 'https://liftlearning.com/wp-content/uploads/2020/09/default-image-300x169.png' }} />
-						</View>
-						<View style={styles.quadradoB}>
-							<Text style={styles.markProduct}>{item.brand.name}</Text>
-							<Text style={styles.nameProduct}>{item.name}</Text>
-							<Text style={styles.priceProduct}>R$ {formatTotal(item.price)}</Text>
-						</View>
-						<View style={styles.quadradoC}>
-							<View style={{ flexDirection: 'row', backgroundColor: '#FFFFFF', justifyContent: 'center', width: '90%', paddingVertical: 5, borderRadius: 5 }}>
-								<TouchableOpacity onPress={() => decreaseQuantity(item.gtin)}>
-									<Icon style={styles.icon} name="remove-outline" size={20} color="#F08F5F" />
-								</TouchableOpacity>
-								<Text style={{ fontSize: 18, paddingHorizontal: 10 }}>{item.quantity}</Text>
-								<TouchableOpacity onPress={() => increaseQuantity(item.gtin)}>
-									<Icon style={styles.icon} name="add-outline" size={20} color="#F08F5F" />
-								</TouchableOpacity>
-							</View>
-						</View>
-					</View>
-				)}
-				keyExtractor={(item, index) => index.toString()}
-			/>
-		</SafeAreaView>
+						</Swipeable>
+					)}
+					keyExtractor={(item, index) => index.toString()}
+				/>
+			</SafeAreaView>
+		</GestureHandlerRootView>
 	);
 }
 
@@ -396,12 +415,19 @@ const styles = StyleSheet.create({
 	},
 	buttonSend: {
 		width: '100%',
-		backgroundColor: '#90ee90',
+		backgroundColor: '#F08F5F',
 		height: 50,
 		justifyContent: 'center',
 		alignItems: 'center',
 		flexDirection: 'row',
 		borderRadius: 6,
 		marginTop: 20
-	}
+	},
+	deleteButton: {
+		backgroundColor: '#F08F5F',
+		justifyContent: 'center',
+		alignItems: 'center',
+		width: 75,
+		borderRadius: 6
+	},
 });
