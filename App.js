@@ -29,8 +29,11 @@ export default function App() {
 	const [quantity, setQuantity] = useState(0);
 	const [price, setPrice] = useState(0);
 	const [total, setTotal] = useState(0);
+	const [formattedPrice, setFormattedPrice] = useState('');
+	const [scannerUsed, setScannerUsed] = useState(false);
 
 	const onCodeScanned = (type, data) => {
+		setScannerUsed(true)
 		setType(type);
 		setData(data);
 		searchProduct(data);
@@ -108,6 +111,8 @@ export default function App() {
 		setProduct('')
 		setQuantity(0)
 		setPrice(0)
+		setFormattedPrice(0)
+		setScannerUsed(false)
 	}
 
 	const sumValues = (items) => {
@@ -129,6 +134,22 @@ export default function App() {
 	const formatPrice = (value) => {
 		return parseFloat(value * 0.01).toFixed(2);
 	};
+
+	const handlePriceChange = (value) => {
+		// Remove todos os caracteres que não são dígitos
+		const numericValue = value.replace(/[^0-9]/g, '');
+		
+		// Converte o valor para um número e armazena no estado
+		setPrice(numericValue)
+		setFormattedPrice(parseFloat(numericValue) / 100);
+	};
+
+	const formattedPriceInput = formattedPrice.toLocaleString('pt-BR', {
+		style: 'currency',
+		currency: 'BRL',
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	});
 
 	const sendWhatsAppMessage = () => {
 		const phoneNumber = "5585991887855";
@@ -165,8 +186,11 @@ export default function App() {
 					animationType="slide"
 				>
 					<View style={styles.modal}>
-						<Scanner onCodeScanned={onCodeScanned} />
 
+					<Scanner onCodeScanned={onCodeScanned} />
+
+					{scannerUsed ? (
+					<>
 						<View style={styles.containerForm}>
 							<View style={styles.w50}>
 								<Text style={styles.label}>Quantidade</Text>
@@ -182,8 +206,8 @@ export default function App() {
 								<Text style={styles.label}>Valor </Text>
 								<TextInput
 									style={styles.input}
-									onChangeText={setPrice}
-									value={price}
+									onChangeText={handlePriceChange}
+									value={formattedPriceInput}
 									keyboardType="numeric"
 								/>
 							</View>
@@ -205,9 +229,17 @@ export default function App() {
 								</View>
 							</View>
 						</View>
+					</>
+					) : (
+						<View>
+							{/* Conteúdo para exibir quando o scanner não for utilizado */}
+						</View>
+					)}
 
 						<View style={styles.close}>
-							<Button title="Cancelar" onPress={() => setModalVisible(false)} />
+							<TouchableOpacity style={styles.btnClose} onPress={() => setModalVisible(false)}>
+								<Icon name="close" size={35} color="white" />
+							</TouchableOpacity>
 						</View>
 					</View>
 				</Modal>
@@ -404,6 +436,14 @@ const styles = StyleSheet.create({
 	},
 	close: {
 		margin: 10,
+		position: 'absolute',
+		top: 10,
+		right: 10
+	},
+	btnClose: {
+		backgroundColor: '#F08F5F',
+		borderRadius: 50,
+		padding: 5
 	},
 	containerForm: {
 		flexDirection: 'row',
