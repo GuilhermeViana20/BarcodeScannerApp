@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, Dimensions } from "react-native";
+import { Text, View, StyleSheet, SafeAreaView } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
 
 export default function Scanner(props) {
@@ -19,21 +19,25 @@ export default function Scanner(props) {
   };
 
   if (hasPermission === null) {
-    return <Text>Requesting for camera permission</Text>;
+    return <Text>Solicitando permissão para acessar a câmera...</Text>;
   }
   if (hasPermission === false) {
-    return <Text>No access to camera</Text>;
+    return <Text>Sem acesso a câmera</Text>;
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.scannerContainer}>
         <BarCodeScanner
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-          style={StyleSheet.absoluteFill}
+          style={styles.wrapper}
         />
+
+
+        <Text style={{ color: 'white' }}>opaa</Text>
+
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -41,7 +45,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'row',
-    padding: 10,
   },
   scannerContainer: {
     backgroundColor: '#0d1117',
@@ -50,5 +53,12 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
     borderWidth: 2,
     borderColor: '#30363d'
+  },
+  wrapper: {
+    ...StyleSheet.absoluteFillObject,
+    top: 10,
+    backgroundColor: 'red',
+    width: '100%',
+    height: '100%'
   },
 });
