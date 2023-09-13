@@ -32,10 +32,6 @@ export default function Scanner(props) {
           onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
           style={styles.wrapper}
         />
-
-
-        <Text style={{ color: 'white' }}>opaa</Text>
-
       </View>
     </SafeAreaView>
   );
@@ -57,7 +53,6 @@ const styles = StyleSheet.create({
   wrapper: {
     ...StyleSheet.absoluteFillObject,
     top: 10,
-    backgroundColor: 'red',
     width: '100%',
     height: '100%'
   },

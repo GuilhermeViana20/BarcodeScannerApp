@@ -246,9 +246,7 @@ export default function App() {
 
 				<StatusBar style="auto" />
 
-				<TouchableOpacity style={styles.scanner} onPress={() => setModalVisible(true)}>
-					<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
-				</TouchableOpacity>
+				<Text style={styles.label}>Bem-vindo ao BarcodeScannerApp!</Text>
 
 				<FlatList
 					data={cartItems}
@@ -304,6 +302,12 @@ export default function App() {
 					)}
 					keyExtractor={(item, index) => index.toString()}
 				/>
+
+				<TouchableOpacity style={styles.scanner} onPress={() => setModalVisible(true)}>
+					<Icon style={styles.icon} name="scan-outline" size={50} color="white" />
+				</TouchableOpacity>
+
+				<Text style={styles.label}>Desenvolvido com ❤️ por Guilherme Viana!</Text>
 			</SafeAreaView>
 		</GestureHandlerRootView>
 	);
@@ -328,7 +332,7 @@ const styles = StyleSheet.create({
 	},
 	scanner: {
 		position: 'absolute',
-		bottom: 20,
+		bottom: 40,
 		width: 80,
 		height: 80,
 		paddingLeft: 3,
